@@ -27,6 +27,8 @@
 // Nice to haves, later:
 // * Custom textwrap routine that parses two-char string '\n' (or ';', etc) as line separator
 // * Instructions, or no? Summary of scoring of hands? Or leave it up to the player to figure out...
+// * Top 10 high score list with names (persisted)
+//   * w/ NPC scores (random) over time
 // * Title screen, about, author 
 //   * Old BBS-style ASCII art title page! (single color for now?)
 // * Animation of card placement from deck
@@ -76,7 +78,7 @@ let msgFloating = '';
 let cardGrid = [['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', '']];
 
 function getName() {
-  return 'Card Test Server';
+  return '(X)Card Test';
 }
 
 function onConnect() {
@@ -165,6 +167,11 @@ function onUpdate() {
   // 'C' to run this test
   if (lastKey == 67 || lastKey == 67 + 32) {
     testAnalyzeAllHands();
+  }
+
+  // 'D' to run this test
+  if (lastKey == 68 || lastKey == 68 + 32) {
+    drawTitle();
   }
 
   if (cardGridFull()) testAnalyzeAllHands();
@@ -402,4 +409,31 @@ function testAnalyzeAllHands() {
   }
   handeval = handAnalyze(h);
   drawText('diag 2:' + HANDNAMES[handeval] + ' (' + HANDSCORES[handeval] + 'pts)', 17, x0, y0 + 13);
+}
+
+//////////////////////////////////
+// Title / intro
+
+function drawTitle() {
+  let x0 = 2;
+  let y0 = 0;
+  let c = 14;
+  clearScreen();
+  drawText("███████╗███╗   ███╗██████╗ ████████╗██╗   ██╗     ", c, x0 + 4, y0++);
+  drawText("██╔════╝████╗ ████║██╔══██╗╚══██╔══╝╚██╗ ██╔╝       ", c, x0 + 4, y0++);
+  drawText("█████╗  ██╔████╔██║██████╔╝   ██║    ╚████╔╝        ", c, x0 + 4, y0++);
+  drawText("██╔══╝  ██║╚██╔╝██║██╔═══╝    ██║     ╚██╔╝         ", c, x0 + 4, y0++);
+  drawText("███████╗██║ ╚═╝ ██║██║        ██║      ██║          ", c, x0 + 4, y0++);
+  drawText("╚══════╝╚═╝     ╚═╝╚═╝        ╚═╝      ╚═╝          ", c, x0 + 4, y0++);
+  drawText("                                                    ", c, x0, y0++);
+  drawText("███████╗ █████╗ ██╗      ██████╗  ██████╗ ███╗   ██╗", c, x0, y0++);
+  drawText("██╔════╝██╔══██╗██║     ██╔═══██╗██╔═══██╗████╗  ██║", c, x0, y0++);
+  drawText("███████╗███████║██║     ██║   ██║██║   ██║██╔██╗ ██║", c, x0, y0++);
+  drawText("╚════██║██╔══██║██║     ██║   ██║██║   ██║██║╚██╗██║", c, x0, y0++);
+  drawText("███████║██║  ██║███████╗╚██████╔╝╚██████╔╝██║ ╚████║", c, x0, y0++);
+  drawText("╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝", c, x0, y0++);
+  y0++;
+  drawText("              press any key to enter", c, x0, y0++);
+  y0++;
+  drawText("v0.2 alpha, icegoat9 (c)1995", 5, x0, y0++);
 }
