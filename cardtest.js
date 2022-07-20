@@ -1,3 +1,6 @@
+// card game tests for Last Call BBS servers
+// by icegoat, 2022
+
 let lastKey;
 //let keyBuffer;
 let cursorX;
