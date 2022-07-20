@@ -55,7 +55,7 @@ let cursorY;
 const CARDW = 5;
 const CARDH = 3;
 const CARDX0 = 2;
-const CARDY0 = 3;
+const CARDY0 = 2;
 const DECKX0 = 30;
 const DECKY0 = 5;
 const HELPX0 = 29;
@@ -65,7 +65,7 @@ const CARDCOL = 10;
 const CURSORCOL = 17;
 const CARDSUITS = ["*", "▲", "♥", "█"];
 const CARDRANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
-const HANDNAMES = ["NONE", "PAIR", "2PAIR", "3KIND", "STRGT", "FLUSH", "HOUSE", "4KIND", "STFSH"];
+const HANDNAMES = ["NONE", "PAIR", "2PR", "3KND", "STRT", "FLSH", "FULL", "4KND", "STFL"];
 //TODO: harmonize with other versions of game
 const HANDSCORES = [0, 1, 2, 2, 2, 2, 4, 4, 4];
 let nextCard = { 'suit': 0, 'rank': 0 };
@@ -73,7 +73,7 @@ const EMPTYCARD = { 'suit': '', 'rank': '' };
 const SCREENMAXX = 55;
 const SCREENMAXY = 19;
 let msgFloating = '';
-let gameState = '';
+let gameState = '';   // valid: title, play, score(?), hiscore(future?)
 
 // TODO: better array initialization
 // create empty 5x5 array
@@ -89,18 +89,23 @@ function onConnect() {
   cursorY = 2;
   lastKey = '';
   gameState = 'title';
+  gameState = 'play';  // TODO: remove (skips to play mode for testing)
   //keyBuffer = loadData();
+
+  // Initialize some dummy cards in grid for testing
+  seedCards(24);
+  cursorX = 4;
+  cursorY = 4;
 }
 
 function onUpdate() {
-  // It is safe to completely redraw the screen during every update
+  // Redraw the screen during every update:
   clearScreen();
   if (gameState == 'title') {
     drawTitle();
   } else if (gameState == 'play') {
     drawGame();
   }
-  // TODO: add score and highscores?
 }
 
 function drawGame() {
@@ -111,7 +116,7 @@ function drawGame() {
   // Instructions
   // TODO: checking for 'X' or 'x', convert to char string to be more readable?
   if (lastKey == 88 || lastKey == 120) {
-    // TODO: do this using msgFloating generalized message instead? See test in onInput()...
+    // TODO: do this using msgFloating generalized message instead and move to onInput()? See a test version there...
     drawText('Arrow keys move cursor', DEFAULTCOL, HELPX0, HELPY0);
     drawText('Space or \'Z\' places card', DEFAULTCOL, HELPX0, HELPY0 + 1);
     drawText('Build valid poker hands', DEFAULTCOL, HELPX0, HELPY0 + 3);
@@ -136,13 +141,6 @@ function drawGame() {
       drawCardBoxOnGrid(3, x, y);
     }
   }
-
-  // Initialize dummy card grid
-  cardGrid[0][0] = { 'suit': 0, 'rank': 0 };
-  cardGrid[1][1] = { 'suit': 1, 'rank': 11 };
-  cardGrid[2][2] = { 'suit': 2, 'rank': 2 };
-  cardGrid[3][3] = { 'suit': 2, 'rank': 9 };
-  cardGrid[4][4] = { 'suit': 3, 'rank': 12 };
 
   // Draw actual card grid
   drawCardGrid()
@@ -171,7 +169,7 @@ function drawGame() {
     drawTitle();
   }
 
-  if (cardGridFull()) testAnalyzeAllHands();
+  if (cardGridFull()) analyzeAndDrawHands();
 }
 
 
@@ -220,8 +218,7 @@ function placeNextCard(gridx, gridy) {
   if (cardGridEmpty(gridx, gridy)) {
     cardGrid[gridx][gridy] = { 'suit': nextCard.suit, 'rank': nextCard.rank };
     drawNewCard();
-  }
-  else {
+  } else {
     msgFloating = 'Error: There is already a card in that location.';
   }
 }
@@ -258,12 +255,11 @@ function onInput(key) {
     // enter play mode on any key press
     gameState = 'play';
   } else if (gameState == 'play') {
+    // Remember the last key pressed:
+    lastKey = key.toString();
 
     // Clear popup messages on any keypress
     msgFloating = '';
-
-    // Remember the last key pressed:
-    lastKey = key.toString();
 
     // Arrow keys
     if (key == 20) cursorX = mod(cursorX + 1, 5);
@@ -280,7 +276,7 @@ function onInput(key) {
     // TODO: remove this (at least until I write a custom wrapped text function that interprets \n or similar for
     //       more control over line spacing?)
     // DEBUG: Dummy test of help using msgFloating (triggered by 'A')
-    if (key == 65) {
+    if (key == 65 || key == 65 + 32) {
       msgFloating = ('Arrow keys move cursor Space or \'Z\' places card Build valid poker hands in all 12 directions (linear and diagonal) to score points');
     }
   }
@@ -289,6 +285,19 @@ function onInput(key) {
 // handle negative numbers
 function mod(num, modulus) {
   return ((num % modulus) + modulus) % modulus
+}
+
+
+// seed board with N random cards
+function seedCards(n) {
+
+  for (let y = 0; y <= 4; y++) {
+    for (let x = 0; x <= 4; x++) {
+      placeNextCard(x, y);
+      if (--n == 0) return
+    }
+  }
+
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -378,7 +387,7 @@ function testHandAnalyze() {
   drawText('hand:' + HANDNAMES[handeval] + ' (' + HANDSCORES[handeval] + 'pts)', 17, x0, 9);
 }
 
-
+// test analyzing all hands and print summary to screen for debugging
 function testAnalyzeAllHands() {
   let x0 = 30;
   let y0 = 3;
@@ -412,6 +421,73 @@ function testAnalyzeAllHands() {
   }
   handeval = handAnalyze(h);
   drawText('diag 2:' + HANDNAMES[handeval] + ' (' + HANDSCORES[handeval] + 'pts)', 17, x0, y0 + 13);
+}
+
+// Analyze all hands and draw score boxes to screen
+// TODO: only analyze once, return array of hand evals, separate draw routine
+function analyzeAndDrawHands() {
+  let h = [];
+  let handeval = 0;
+  //analyze row hands
+  for (let y = 0; y <= 4; y++) {
+    for (let x = 0; x <= 4; x++) {
+      h[x] = cardGrid[x][y];
+    }
+    handeval = handAnalyze(h);
+    drawScoreBox(y, handeval);
+  }
+  //analyze col hands
+  for (let x = 0; x <= 4; x++) {
+    for (let y = 0; y <= 4; y++) {
+      h[y] = cardGrid[x][y];
+    }
+    handeval = handAnalyze(h);
+    drawScoreBox(x + 5, handeval);
+  }
+  //analyze diag hands
+  for (let i = 0; i <= 4; i++) {
+    h[i] = cardGrid[i][i];
+  }
+  handeval = handAnalyze(h);
+  drawScoreBox(11, handeval);
+  for (let i = 0; i <= 4; i++) {
+    h[i] = cardGrid[i][4 - i];
+  }
+  handeval = handAnalyze(h);
+  drawScoreBox(12, handeval);
+}
+
+// draw score box (hand name and score) for hand #n evaluated to heval
+//  0-4: rows 0-4
+//  5-9: cols 0-4
+//  10: \ diagonal
+//  11: / diagonal
+function drawScoreBox(n, heval) {
+  let x = 0;
+  let y = 0;
+  const SCORECOL = 12;
+  if (n < 5) {
+    x = CARDX0 + 5 * CARDW + 3;
+    y = CARDY0 + n * CARDH + 1;
+    drawText('---', SCORECOL, x - 3, y); // draw leader
+  } else if (n < 10) {
+    x = CARDX0 + (n - 5) * CARDW;
+    y = CARDY0 + 5 * CARDH + 1;
+    drawText('I', SCORECOL, x + 2, y - 1); // draw leader
+  } else if (n == 11) {
+    x = CARDX0 + 5 * CARDW + 3;
+    y = CARDY0 + 5 * CARDH + 1;
+    drawText('\\  ', SCORECOL, x - 3, y - 1); // draw leader
+    drawText(' \\ ', SCORECOL, x - 3, y); // draw leader
+  } else {
+    x = CARDX0 + 5 * CARDW + 3;
+    y = CARDY0 - CARDH + 1;
+    drawText(' / ', SCORECOL, x - 3, y); // draw leader
+    drawText('/  ', SCORECOL, x - 3, y + 1); // draw leader
+  }
+  //drawBox(SCORECOL, x, y, 7, 4);
+  drawText(HANDNAMES[heval], SCORECOL, x, y);
+  drawText(' (' + HANDSCORES[heval] + ')', SCORECOL, x, y + 1);
 }
 
 //////////////////////////////////
