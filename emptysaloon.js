@@ -49,7 +49,7 @@
 //   █▟▙▜▛▀▄▐▌▝▘─♥═║╔╗╚╝╠╣>▲▼™`
 
 
-
+let debugMode = false;
 let lastKey;
 //let keyBuffer;
 let cursorX;
@@ -57,11 +57,12 @@ let cursorY;
 const CARDW = 5;
 const CARDH = 3;
 const CARDX0 = 2;
-const CARDY0 = 2;
-const DECKX0 = 30;
+const CARDY00 = 3;
+let CARDY0 = CARDY00; // TODO: not a constant-- rename?
+const DECKX0 = 33;
 const DECKY0 = 5;
 const HELPX0 = 29;
-const HELPY0 = 10;
+const HELPY0 = 9;
 const DEFAULTCOL = 10;
 const CARDCOL = 10;
 const CURSORCOL = 17;
@@ -113,6 +114,7 @@ function onUpdate() {
 }
 
 function drawGame() {
+
   // Title
   drawText('EMPTY SALOON: Poker Solitaire', 16, 13, 0);
   drawText('(press \'X\' for help)', DEFAULTCOL, 17, 1);
@@ -122,17 +124,19 @@ function drawGame() {
   if (lastKey == 88 || lastKey == 88 + 32) {
     // TODO: do this using msgFloating generalized message instead and move to onInput()? See a test version there...
     drawText('Arrow keys move cursor', DEFAULTCOL, HELPX0, HELPY0);
-    drawText('Space or \'Z\' places card', DEFAULTCOL, HELPX0, HELPY0 + 1);
-    drawText('Build valid poker hands', DEFAULTCOL, HELPX0, HELPY0 + 3);
-    drawText(' in all 12 directions', DEFAULTCOL, HELPX0, HELPY0 + 4);
-    drawText(' (linear and diagonal)', DEFAULTCOL, HELPX0, HELPY0 + 5);
-    drawText(' to score points', DEFAULTCOL, HELPX0, HELPY0 + 6);
+    drawText('Space or \'Z\' places card', DEFAULTCOL, HELPX0, HELPY0 + 2);
+    drawText('Score points from poker', DEFAULTCOL, HELPX0, HELPY0 + 4);
+    drawText(' hands in 12 directions', DEFAULTCOL, HELPX0, HELPY0 + 5);
+    drawText('(pairs or better in all', DEFAULTCOL, HELPX0, HELPY0 + 6);
+    drawText(' 12 directions ═ bonus)', DEFAULTCOL, HELPX0, HELPY0 + 7);
   }
 
-  // Debugging: Show the most recently pressed key:
-  drawText('DEBUG', 14, 50, 17);
-  drawBox(10, 50, 18, 5, 3);
-  drawText(lastKey, 17, 54 - lastKey.length, 19);
+  if (debugMode) {
+    // Debugging: Show the most recently pressed key:
+    drawText('DEBUG: last key', 14, 0, 17);
+    drawBox(10, 0, 18, 5, 3);
+    drawText(lastKey, 17, 4 - lastKey.length, 19);
+  }
 
   // Draw Deck / Next Card
   drawText('NEXT:', DEFAULTCOL, DECKX0, DECKY0 - 1);
@@ -147,7 +151,7 @@ function drawGame() {
   }
 
   // Draw actual card grid
-  drawCardGrid()
+  drawCardGrid();
 
   // Draw cursor
   drawCardBoxOnGrid(CURSORCOL, cursorX, cursorY);
@@ -155,34 +159,37 @@ function drawGame() {
   // Draw popup message (if any)
   if (msgFloating != '') {
     // TODO: set box height based on expected wrapped-text height (tricky to determine-- overestimate? use max?)
-    drawBox(DEFAULTCOL, HELPX0, HELPY0, SCREENMAXX - HELPX0, 8);
+    drawBox(DEFAULTCOL, HELPX0, HELPY0, SCREENMAXX - HELPX0, 4);
     drawTextWrapped(msgFloating, DEFAULTCOL, HELPX0 + 1, HELPY0 + 1, SCREENMAXX - HELPX0 - 2);
   }
 
-  // 'B' to run this test
-  if (lastKey == 66 || lastKey == 66 + 32) {
-    testHandAnalyze();
-  }
-  // 'C' to run this test
-  if (lastKey == 67 || lastKey == 67 + 32) {
-    testAnalyzeAllHands();
-  }
+  if (debugMode) {
 
-  // 'D' to run this test
-  if (lastKey == 68 || lastKey == 68 + 32) {
-    drawTitle();
-  }
+    // 'B' to run this test
+    if (lastKey == 66 || lastKey == 66 + 32) {
+      testHandAnalyze();
+    }
+    // 'C' to run this test
+    if (lastKey == 67 || lastKey == 67 + 32) {
+      testAnalyzeAllHands();
+    }
 
+    // 'D' to run this test
+    if (lastKey == 68 || lastKey == 68 + 32) {
+      drawTitle();
+    }
+  }
   if (cardGridFull()) gameState = 'scored'; //TODO: move to separate update function, or not?
 }
 
 // draw card grid and score callouts (only once full)
 function drawScored() {
   let x0 = 39;
-  let y0 = 3;
+  let y0 = 2;
+  CARDY0 = CARDY00 - 1;
   //drawText('Scoring all 12 hands:', 16, 2, 0);
   // Draw actual card grid
-  drawCardGrid()
+  drawCardGrid();
   let score = analyzeAndDrawHands();
   // TODO: Show bonus score for all hands?
   drawText('Your Score:', 16, x0, y0++);
@@ -195,7 +202,7 @@ function drawScored() {
   drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
   drawText(99, 16, x0 + 4, y0++);
   // TODO: if new high score, show note (and persist)
-  drawTextWrapped('Press [X] to play again', 16, x0, y0 + 4, 16);
+  drawTextWrapped('Press [X] to play again', 16, x0, y0 + 5, 16);
 }
 
 
@@ -319,6 +326,7 @@ function newGame() {
   // TODO: actually clear grid, reset deck, etc (for now, hard-resets grid w/ random cards)
   cardGrid = [['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', '']];
   seedCards(24);
+  CARDY0 = CARDY00;
 }
 
 // handle negative numbers
