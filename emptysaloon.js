@@ -7,16 +7,16 @@
 //
 // Required items before alpha release + getting feedback:
 // * Review past PICO-8 and CircuitPython implementations...
-// * Hand computation
+// * XX Hand computation
 //   * XX cardGrid -> 12 [a,b,c,d,e] arrays
 //   * XX score an [a,b,c,d,e] array
 //   * XX array of hand names -> scores
-//   * review past implementations for score modes
-// * Game states (play vs. score vs. highscore?) -- different update and draw routines?
+//   * XX review past implementations for score modes
+// * XX Game states (play vs. score vs. highscore?) -- different update and draw routines?
 //   * XX simple first states: title vs play
 // * Save and load persistent high scores (and dates?)
 //   * Shift dates to the 1990s or a fixed 1990s-era year?
-// * Display hands and scores at end of game (w/ leaders for diagonals?)
+// * XX Display hands and scores at end of game (w/ leaders for diagonals?)
 // * Deck handling
 //   * Create randomly shuffled unique-card deck
 //   * Draw next cards from this deck rather than randomly generating
@@ -24,6 +24,7 @@
 // * Remove "debug" last keypress box
 // * Allow H or ? to bring up help as well
 // * XX Rename .js, and BBS connection string
+// * Pass through to tweak colors / contrast (especially in scored hands one...)
 //
 // Nice to haves, later:
 // * Custom textwrap routine that parses two-char string '\n' (or ';', etc) as line separator
@@ -36,6 +37,7 @@
 //   * Test if certain timer / pause or related commands work
 // 
 // Code cleanup:
+// * Refactor analyze and score/draw hands from one function to separate analyze vs. display
 // * More streamlined array initializations?
 // * Pass 'card' objects rather than suit and rank to some functions
 // * Standard class/structure/etc for card object?
@@ -66,8 +68,8 @@ const CURSORCOL = 17;
 const CARDSUITS = ["*", "▲", "♥", "█"];
 const CARDRANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
 const HANDNAMES = ["NONE", "PAIR", "2PR", "3KND", "STRT", "FLSH", "FULL", "4KND", "STFL"];
-//TODO: harmonize with other versions of game
-const HANDSCORES = [0, 1, 2, 2, 2, 2, 4, 4, 4];
+//TODO: harmonize scores with other versions of game?
+const HANDSCORES = [0, 1, 2, 2, 3, 3, 3, 5, 9];
 let nextCard = { 'suit': 0, 'rank': 0 };
 const EMPTYCARD = { 'suit': '', 'rank': '' };
 const SCREENMAXX = 55;
@@ -466,12 +468,14 @@ function analyzeAndDrawHands() {
   let h = [];
   let handeval = 0;
   let score = 0;
+  let scoredhands = 0;
   //analyze row hands
   for (let y = 0; y <= 4; y++) {
     for (let x = 0; x <= 4; x++) {
       h[x] = cardGrid[x][y];
     }
     handeval = handAnalyze(h);
+    if (handeval > 0) scoredhands++;
     score += HANDSCORES[handeval];
     drawScoreBox(y, handeval);
   }
@@ -481,6 +485,7 @@ function analyzeAndDrawHands() {
       h[y] = cardGrid[x][y];
     }
     handeval = handAnalyze(h);
+    if (handeval > 0) scoredhands++;
     score += HANDSCORES[handeval];
     drawScoreBox(x + 5, handeval);
   }
@@ -489,14 +494,20 @@ function analyzeAndDrawHands() {
     h[i] = cardGrid[i][i];
   }
   handeval = handAnalyze(h);
+  if (handeval > 0) scoredhands++;
   score += HANDSCORES[handeval];
   drawScoreBox(11, handeval);
   for (let i = 0; i <= 4; i++) {
     h[i] = cardGrid[i][4 - i];
   }
   handeval = handAnalyze(h);
+  if (handeval > 0) scoredhands++;
   score += HANDSCORES[handeval];
   drawScoreBox(12, handeval);
+
+  // TODO: split out scoring vs. display into separate functions
+  // add bonus score if all 12 hands scored
+  if (scoredhands == 12) score += 25;
   return score;
 }
 
@@ -512,25 +523,25 @@ function drawScoreBox(n, heval) {
   if (n < 5) {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 + n * CARDH + 1;
-    drawText('---', SCORECOL, x - 3, y); // draw leader
+    drawText('---', SCORECOL - 4, x - 3, y); // draw leader
   } else if (n < 10) {
     x = CARDX0 + (n - 5) * CARDW;
     y = CARDY0 + 5 * CARDH + 1;
-    drawText('I', SCORECOL, x + 2, y - 1); // draw leader
+    drawText('I', SCORECOL - 4, x + 2, y - 1); // draw leader
   } else if (n == 11) {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 + 5 * CARDH + 1;
-    drawText('\\  ', SCORECOL, x - 3, y - 1); // draw leader
-    drawText(' \\ ', SCORECOL, x - 3, y); // draw leader
+    drawText('\\  ', SCORECOL - 4, x - 3, y - 1); // draw leader
+    drawText(' \\ ', SCORECOL - 4, x - 3, y); // draw leader
   } else {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 - CARDH + 1;
-    drawText(' / ', SCORECOL, x - 3, y); // draw leader
-    drawText('/  ', SCORECOL, x - 3, y + 1); // draw leader
+    drawText(' / ', SCORECOL - 4, x - 3, y); // draw leader
+    drawText('/  ', SCORECOL - 4, x - 3, y + 1); // draw leader
   }
   //drawBox(SCORECOL, x, y, 7, 4);
   drawText(HANDNAMES[heval], SCORECOL, x, y);
-  drawText(' (' + HANDSCORES[heval] + ')', SCORECOL, x, y + 1);
+  drawText(' (' + HANDSCORES[heval] + ')', SCORECOL - 4, x, y + 1);
 }
 
 //////////////////////////////////
