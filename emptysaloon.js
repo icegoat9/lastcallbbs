@@ -105,6 +105,8 @@ function onUpdate() {
     drawTitle();
   } else if (gameState == 'play') {
     drawGame();
+  } else if (gameState == 'scored') {
+    drawScored();
   }
 }
 
@@ -115,7 +117,7 @@ function drawGame() {
 
   // Instructions
   // TODO: checking for 'X' or 'x', convert to char string to be more readable?
-  if (lastKey == 88 || lastKey == 120) {
+  if (lastKey == 88 || lastKey == 88 + 32) {
     // TODO: do this using msgFloating generalized message instead and move to onInput()? See a test version there...
     drawText('Arrow keys move cursor', DEFAULTCOL, HELPX0, HELPY0);
     drawText('Space or \'Z\' places card', DEFAULTCOL, HELPX0, HELPY0 + 1);
@@ -135,7 +137,7 @@ function drawGame() {
   drawCard(DECKX0, DECKY0, nextCard.suit, nextCard.rank);
   drawCardBox(CURSORCOL, DECKX0, DECKY0);
 
-  // Draw card grid
+  // Draw empty card grid
   for (let x = 0; x <= 4; x++) {
     for (let y = 0; y <= 4; y++) {
       drawCardBoxOnGrid(3, x, y);
@@ -169,7 +171,29 @@ function drawGame() {
     drawTitle();
   }
 
-  if (cardGridFull()) analyzeAndDrawHands();
+  if (cardGridFull()) gameState = 'scored'; //TODO: move to separate update function, or not?
+}
+
+// draw card grid and score callouts (only once full)
+function drawScored() {
+  let x0 = 39;
+  let y0 = 3;
+  //drawText('Scoring all 12 hands:', 16, 2, 0);
+  // Draw actual card grid
+  drawCardGrid()
+  let score = analyzeAndDrawHands();
+  // TODO: Show bonus score for all hands?
+  drawText('Your Score:', 16, x0, y0++);
+  drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
+  // TODO: pad text if 1 digit
+  drawText(score, 16, x0 + 4, y0++);
+  // TODO: show existing high score
+  y0 += 2;
+  drawText('High score:', 16, x0, y0++)
+  drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
+  drawText(99, 16, x0 + 4, y0++);
+  // TODO: if new high score, show note (and persist)
+  drawTextWrapped('Press [X] to play again', 16, x0, y0 + 4, 16);
 }
 
 
@@ -279,7 +303,20 @@ function onInput(key) {
     if (key == 65 || key == 65 + 32) {
       msgFloating = ('Arrow keys move cursor Space or \'Z\' places card Build valid poker hands in all 12 directions (linear and diagonal) to score points');
     }
+  } else if (gameState == 'scored') {
+    // X or x
+    if (key == 88 || key == 88 + 32) {
+      newGame();
+      gameState = 'play';
+    }
   }
+
+}
+
+function newGame() {
+  // TODO: actually clear grid, reset deck, etc (for now, hard-resets grid w/ random cards)
+  cardGrid = [['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', '']];
+  seedCards(24);
 }
 
 // handle negative numbers
@@ -423,17 +460,19 @@ function testAnalyzeAllHands() {
   drawText('diag 2:' + HANDNAMES[handeval] + ' (' + HANDSCORES[handeval] + 'pts)', 17, x0, y0 + 13);
 }
 
-// Analyze all hands and draw score boxes to screen
-// TODO: only analyze once, return array of hand evals, separate draw routine
+// Analyze all hands and draw score boxes to screen, return total score
+// TODO: split up function: only analyze once, return array of hand evals, separate draw routine
 function analyzeAndDrawHands() {
   let h = [];
   let handeval = 0;
+  let score = 0;
   //analyze row hands
   for (let y = 0; y <= 4; y++) {
     for (let x = 0; x <= 4; x++) {
       h[x] = cardGrid[x][y];
     }
     handeval = handAnalyze(h);
+    score += HANDSCORES[handeval];
     drawScoreBox(y, handeval);
   }
   //analyze col hands
@@ -442,6 +481,7 @@ function analyzeAndDrawHands() {
       h[y] = cardGrid[x][y];
     }
     handeval = handAnalyze(h);
+    score += HANDSCORES[handeval];
     drawScoreBox(x + 5, handeval);
   }
   //analyze diag hands
@@ -449,12 +489,15 @@ function analyzeAndDrawHands() {
     h[i] = cardGrid[i][i];
   }
   handeval = handAnalyze(h);
+  score += HANDSCORES[handeval];
   drawScoreBox(11, handeval);
   for (let i = 0; i <= 4; i++) {
     h[i] = cardGrid[i][4 - i];
   }
   handeval = handAnalyze(h);
+  score += HANDSCORES[handeval];
   drawScoreBox(12, handeval);
+  return score;
 }
 
 // draw score box (hand name and score) for hand #n evaluated to heval
