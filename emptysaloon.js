@@ -1,12 +1,14 @@
-// Empty Saloon -- poker solitaire as a "Last Call BBS" server (https://www.zachtronics.com/quickserve/)
+// Empty Saloon -- poker solitaire as a Last Call BBS 'server'
 //
 // ~port of a game I wrote for PICO-8: https://www.lexaloffle.com/bbs/?pid=83439
 // by icegoat, July 2022  (twitter: @icegoat9)
 
-// disclaimer: I don't really know Javascript... this was a quick 2-day project inspired
-//             by the recent Last Call BBS update...
+// disclaimer: I don't really know Javascript... I'm sure there are cleaner ways to do things, 
+//             but this was a quick < 2-day project inspired by the recent Last Call BBS update...
 
-// High-level TODOs:
+// installation: copy this to the 'servers' folder in Last Call BBS
+
+// High-level TODOs / notes to self:
 //
 // Required items before alpha release + getting feedback:
 // * XX Hand computation
@@ -16,33 +18,35 @@
 //   * XX review past implementations for score modes
 // * XX Game states (play vs. score vs. highscore?) -- different update and draw routines?
 //   * XX simple first states: title vs play
-// * Save and load persistent high scores (and dates?)
-//   * Shift dates to the 1990s or a fixed 1990s-era year?
+// * XX Save and load persistent high scores (and dates?)
+//   * XX Shift dates to the 1990s or a fixed 1990s-era year?
 // * XX Display hands and scores at end of game (w/ leaders for diagonals?)
 // * XX Deck handling
 //   * XX Create randomly shuffled unique-card deck
 //   * XX Draw next cards from this deck rather than randomly generating
 //   * XX Initialize nextCard from this deck
 // * XX Remove "debug" last keypress box
-// * Allow H or ? to bring up help as well
 // * XX Rename .js, and BBS connection string
-// * Pass through to tweak colors / contrast (especially in scored hands one...)
+// * XX Pass through to tweak colors / contrast (especially in scored hands one...)
+// * XX Move the 'A' help menu to debug mode
 //
 // Nice to haves, later:
+// * Tweak scoring of different hands and bonus
+// * Allow H or ? to bring up help as well?
 // * Custom textwrap routine that parses two-char string '\n' (or ';', etc) as line separator
 // * Instructions, or no? Summary of scoring of hands? Or leave it up to the player to figure out...
 // * Review past PICO-8 and CircuitPython implementations...
-// * Top 10 high score list with names (persisted)
-//   * w/ NPC scores (random) over time
+// * Top 10 high score list with names (persisted) and name entry
+//   * w/ NPC scores added over time
 // * XX Title screen (old BBS style ASCII art), about, author 
 // * Animation of card placement from deck
 //   * Test if certain timer / pause or related commands work
 // 
 // Code cleanup (maybe... but this is just a quick project):
 // * Refactor analyze and score/draw hands into multiple fns to separate analyze vs. display
+// * Move some functions out of the every-draw loops (e.g. checking for high score) to run once instead
 // * More streamlined array initializations?
-// * Pass 'card' objects rather than suit and rank to some functions
-// * Standard class/structure/etc for card object?
+// * Pass 'card' objects rather than suit and rank to some functions?
 // * Checking inputs based on char strings CHR(#) rather than numbers?
 //
 // Note: full set of font characters per the demo server are:
@@ -65,7 +69,7 @@ const DECKX0 = 33;
 const DECKY0 = 5;
 const HELPX0 = 29;
 const HELPY0 = 9;
-const DEFAULTCOL = 10;
+const DEFAULTCOL = 9;
 const CARDCOL = 10;
 const CURSORCOL = 17;
 const CARDSUITS = ["*", "▲", "♥", "█"];
@@ -80,6 +84,8 @@ const SCREENMAXY = 19;
 let msgFloating = '';
 let gameState = '';   // valid: title, play, score(?), hiscore(future?)
 let deck = [];  // global deck object
+let highscore = 99;
+let ishighscore = false;
 
 // TODO: better array initialization
 // create empty 5x5 array
@@ -94,12 +100,12 @@ function onConnect() {
   lastKey = '';
   gameState = 'title';
 
-  newGame();  // DEBUG: skips title menu
+  //newGame();  // DEBUG: skips title menu
   cursorX = 4;  //DEBUG
   cursorY = 4;
 
-  gameState = 'play';  // TODO: remove (skips to play mode for testing)
-  //keyBuffer = loadData();
+  //  highscore = loadData().parseInt();
+  highscore = Number(loadData());
 
 }
 
@@ -198,12 +204,22 @@ function drawScored() {
   drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
   // TODO: pad text if 1 digit
   drawText(score, 16, x0 + 4, y0++);
-  // TODO: show existing high score
   y0 += 2;
-  drawText('High score:', 16, x0, y0++)
-  drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
-  drawText(99, 16, x0 + 4, y0++);
-  // TODO: if new high score, show note (and persist)
+  // TODO: move this into a separate run-once-on-game-end routine, not
+  //       run every screen redraw!
+  if (score > highscore) {
+    ishighscore = true;
+    highscore = score;
+    saveData(String(highscore));
+  }
+  if (ishighscore) {
+    drawText('New high score!', 16, x0, y0++)
+  } else {
+    drawText('High score:', 16, x0, y0++)
+    drawBox(DEFAULTCOL, x0 + 2, y0++, 6, 3);
+    drawText(highscore, 16, x0 + 4, y0++);
+  }
+
   drawTextWrapped('Press [X] to play again', 16, x0, y0 + 5, 16);
 }
 
@@ -309,11 +325,13 @@ function onInput(key) {
       placeNextCard(cursorX, cursorY);
     }
 
-    // TODO: remove this (at least until I write a custom wrapped text function that interprets \n or similar for
-    //       more control over line spacing?)
     // DEBUG: Dummy test of help using msgFloating (triggered by 'A')
-    if (key == 65 || key == 65 + 32) {
-      msgFloating = ('Arrow keys move cursor Space or \'Z\' places card Build valid poker hands in all 12 directions (linear and diagonal) to score points');
+    // TODO: on hold until I write a custom wrapped text function that interprets \n or similar for
+    //       more control over line spacing
+    if (debugMode) {
+      if (key == 65 || key == 65 + 32) {
+        msgFloating = ('Arrow keys move cursor Space or \'Z\' places card Build valid poker hands in all 12 directions (linear and diagonal) to score points');
+      }
     }
   } else if (gameState == 'scored') {
     // X or x
@@ -340,6 +358,7 @@ function newGame() {
 
   gameState = 'play';
 
+  ishighscore = false;
 }
 
 // draw a random card out of the global deck 
@@ -534,7 +553,7 @@ function analyzeAndDrawHands() {
 
   // TODO: split out scoring vs. display into separate functions
   // add bonus score if all 12 hands scored
-  if (scoredhands == 12) score += 25;
+  if (scoredhands == 12) score += 50;
   return score;
 }
 
@@ -547,19 +566,20 @@ function drawScoreBox(n, heval) {
   let x = 0;
   let y = 0;
   const SCORECOL = 12;
+  const SCORECOL2 = 6;  // leaders
   if (n < 5) {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 + n * CARDH + 1;
-    drawText('---', SCORECOL - 4, x - 3, y); // draw leader
+    drawText('---', SCORECOL2, x - 3, y); // draw leader
   } else if (n < 10) {
     x = CARDX0 + (n - 5) * CARDW;
     y = CARDY0 + 5 * CARDH + 1;
-    drawText('I', SCORECOL - 4, x + 2, y - 1); // draw leader
+    drawText('I', SCORECOL2, x + 2, y - 1); // draw leader
   } else if (n == 11) {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 + 5 * CARDH + 1;
-    drawText('\\  ', SCORECOL - 4, x - 3, y - 1); // draw leader
-    drawText(' \\ ', SCORECOL - 4, x - 3, y); // draw leader
+    drawText('\\  ', SCORECOL2, x - 3, y - 1); // draw leader
+    drawText(' \\ ', SCORECOL2, x - 3, y); // draw leader
   } else {
     x = CARDX0 + 5 * CARDW + 3;
     y = CARDY0 - CARDH + 1;
@@ -568,7 +588,7 @@ function drawScoreBox(n, heval) {
   }
   //drawBox(SCORECOL, x, y, 7, 4);
   drawText(HANDNAMES[heval], SCORECOL, x, y);
-  drawText(' (' + HANDSCORES[heval] + ')', SCORECOL - 4, x, y + 1);
+  drawText(' (' + HANDSCORES[heval] + ')', SCORECOL2, x, y + 1);
 }
 
 // populate global deck object with cards in order
@@ -587,7 +607,7 @@ function deckInit() {
 function drawTitle() {
   let x0 = 2;
   let y0 = 1;
-  let c = 14;
+  let c = 12;
   clearScreen();
   drawText("███████╗███╗   ███╗██████╗ ████████╗██╗   ██╗     ", c, x0 + 4, y0++);
   drawText("██╔════╝████╗ ████║██╔══██╗╚══██╔══╝╚██╗ ██╔╝       ", c, x0 + 4, y0++);
@@ -605,5 +625,6 @@ function drawTitle() {
   y0++;
   drawText("               press any key to enter", c, x0, y0++);
   y0++;
-  drawText("v0.2 alpha, icegoat9 (c)1995", 4, 26, 18);
+  drawText("v0.7, icegoat9 (c)1995", 4, 32, 18);
 }
+
