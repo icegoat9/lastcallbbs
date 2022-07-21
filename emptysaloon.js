@@ -21,7 +21,7 @@
 //   * Create randomly shuffled unique-card deck
 //   * Draw next cards from this deck rather than randomly generating
 //   * Initialize nextCard from this deck
-// * Remove "debug" last keypress box
+// * XX Remove "debug" last keypress box
 // * Allow H or ? to bring up help as well
 // * XX Rename .js, and BBS connection string
 // * Pass through to tweak colors / contrast (especially in scored hands one...)
@@ -71,12 +71,13 @@ const CARDRANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "
 const HANDNAMES = ["NONE", "PAIR", "2PR", "3KND", "STRT", "FLSH", "FULL", "4KND", "STFL"];
 //TODO: harmonize scores with other versions of game?
 const HANDSCORES = [0, 1, 2, 2, 3, 3, 3, 5, 9];
-let nextCard = { 'suit': 0, 'rank': 0 };
+let nextCard = {};
 const EMPTYCARD = { 'suit': '', 'rank': '' };
 const SCREENMAXX = 55;
 const SCREENMAXY = 19;
 let msgFloating = '';
 let gameState = '';   // valid: title, play, score(?), hiscore(future?)
+let deck = [];  // global deck object
 
 // TODO: better array initialization
 // create empty 5x5 array
@@ -88,17 +89,16 @@ function getName() {
 
 function onConnect() {
   // Reset the server variables when a new user connects:
-  cursorX = 2;
-  cursorY = 2;
   lastKey = '';
   gameState = 'title';
+
+  newGame();  // DEBUG: skips title menu
+  cursorX = 4;  //DEBUG
+  cursorY = 4;
+
   gameState = 'play';  // TODO: remove (skips to play mode for testing)
   //keyBuffer = loadData();
 
-  // Initialize some dummy cards in grid for testing
-  seedCards(24);
-  cursorX = 4;
-  cursorY = 4;
 }
 
 function onUpdate() {
@@ -127,7 +127,7 @@ function drawGame() {
     drawText('Space or \'Z\' places card', DEFAULTCOL, HELPX0, HELPY0 + 2);
     drawText('Score points from poker', DEFAULTCOL, HELPX0, HELPY0 + 4);
     drawText(' hands in 12 directions', DEFAULTCOL, HELPX0, HELPY0 + 5);
-    drawText('(pairs or better in all', DEFAULTCOL, HELPX0, HELPY0 + 6);
+    drawText('(valid hands in all', DEFAULTCOL, HELPX0, HELPY0 + 6);
     drawText(' 12 directions ═ bonus)', DEFAULTCOL, HELPX0, HELPY0 + 7);
   }
 
@@ -250,7 +250,7 @@ function gridXYtoScreenXY(gridx, gridy) {
 function placeNextCard(gridx, gridy) {
   if (cardGridEmpty(gridx, gridy)) {
     cardGrid[gridx][gridy] = { 'suit': nextCard.suit, 'rank': nextCard.rank };
-    drawNewCard();
+    nextCard = cardDrawNext();
   } else {
     msgFloating = 'Error: There is already a card in that location.';
   }
@@ -265,7 +265,7 @@ function getRandomInt(range) {
   return Math.floor(Math.random() * range);
 }
 
-function drawNewCard() {
+function dummyDrawNextCard() {
   // TODO: create an actual deck object to draw from
   // placeholder: general random card (may already exist on grid)
   nextCard.suit = getRandomInt(4);
@@ -286,7 +286,8 @@ function onInput(key) {
 
   if (gameState == 'title') {
     // enter play mode on any key press
-    gameState = 'play';
+    newGame();
+    //gameState = 'play';  //already done within newGame()
   } else if (gameState == 'play') {
     // Remember the last key pressed:
     lastKey = key.toString();
@@ -316,7 +317,7 @@ function onInput(key) {
     // X or x
     if (key == 88 || key == 88 + 32) {
       newGame();
-      gameState = 'play';
+      //gameState = 'play';  //already done in newGame
     }
   }
 
@@ -324,9 +325,25 @@ function onInput(key) {
 
 function newGame() {
   // TODO: actually clear grid, reset deck, etc (for now, hard-resets grid w/ random cards)
+  // clear deck
+  deckInit();
+  nextCard = cardDrawNext();
+
   cardGrid = [['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', '']];
-  seedCards(24);
+  seedCards(24);  // temporary, for debugging
+
   CARDY0 = CARDY00;
+  cursorX = 2;
+  cursorY = 2;
+
+  gameState = 'play';
+
+}
+
+// draw a random card out of the global deck 
+function cardDrawNext() {
+  let n = Math.floor(Math.random() * deck.length);
+  return deck.splice(n, 1)[0];
 }
 
 // handle negative numbers
@@ -550,6 +567,16 @@ function drawScoreBox(n, heval) {
   //drawBox(SCORECOL, x, y, 7, 4);
   drawText(HANDNAMES[heval], SCORECOL, x, y);
   drawText(' (' + HANDSCORES[heval] + ')', SCORECOL - 4, x, y + 1);
+}
+
+// populate global deck object with cards in order
+function deckInit() {
+  deck = [];
+  for (let s = 0; s < 4; s++) {
+    for (let r = 0; r < 13; r++) {
+      deck.push({ 'suit': s, 'rank': r });
+    }
+  }
 }
 
 //////////////////////////////////
