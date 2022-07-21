@@ -330,7 +330,7 @@ function newGame() {
   nextCard = cardDrawNext();
 
   cardGrid = [['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', ''], ['', '', '', '', '']];
-  seedCards(24);  // temporary, for debugging
+  //seedCards(24);  // temporary, for debugging
 
   CARDY0 = CARDY00;
   cursorX = 2;
