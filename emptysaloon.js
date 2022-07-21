@@ -1,12 +1,13 @@
-// card game tests for Last Call BBS servers
-// by icegoat, July 2022
+// Empty Saloon -- poker solitaire for "Last Call BBS" servers
+//
+//  (~port of a game I wrote for PICO-8: https://www.lexaloffle.com/bbs/?pid=83439 )
+// by icegoat, July 2022  (twitter: @icegoat9)
 
 // disclaimer: I don't really know Javascript...
 
 // High-level TODOs:
 //
 // Required items before alpha release + getting feedback:
-// * Review past PICO-8 and CircuitPython implementations...
 // * XX Hand computation
 //   * XX cardGrid -> 12 [a,b,c,d,e] arrays
 //   * XX score an [a,b,c,d,e] array
@@ -17,10 +18,10 @@
 // * Save and load persistent high scores (and dates?)
 //   * Shift dates to the 1990s or a fixed 1990s-era year?
 // * XX Display hands and scores at end of game (w/ leaders for diagonals?)
-// * Deck handling
-//   * Create randomly shuffled unique-card deck
-//   * Draw next cards from this deck rather than randomly generating
-//   * Initialize nextCard from this deck
+// * XX Deck handling
+//   * XX Create randomly shuffled unique-card deck
+//   * XX Draw next cards from this deck rather than randomly generating
+//   * XX Initialize nextCard from this deck
 // * XX Remove "debug" last keypress box
 // * Allow H or ? to bring up help as well
 // * XX Rename .js, and BBS connection string
@@ -29,15 +30,15 @@
 // Nice to haves, later:
 // * Custom textwrap routine that parses two-char string '\n' (or ';', etc) as line separator
 // * Instructions, or no? Summary of scoring of hands? Or leave it up to the player to figure out...
+// * Review past PICO-8 and CircuitPython implementations...
 // * Top 10 high score list with names (persisted)
 //   * w/ NPC scores (random) over time
-// * XX Title screen, about, author 
-//   * XX Old BBS-style ASCII art title page! (single color for now?)
+// * XX Title screen (old BBS style ASCII art), about, author 
 // * Animation of card placement from deck
 //   * Test if certain timer / pause or related commands work
 // 
-// Code cleanup:
-// * Refactor analyze and score/draw hands from one function to separate analyze vs. display
+// Code cleanup (maybe... but this is just a quick project):
+// * Refactor analyze and score/draw hands into multiple fns to separate analyze vs. display
 // * More streamlined array initializations?
 // * Pass 'card' objects rather than suit and rank to some functions
 // * Standard class/structure/etc for card object?
