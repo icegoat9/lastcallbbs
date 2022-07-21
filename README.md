@@ -22,11 +22,11 @@ ToDo:
 - Get feedback from people who play it
 - Add Top 10 high scores?
 - Add a 'hard mode' (must score hands in all 12 directions)
-- More notes in source code
+- List of other items in source code (but realistically may not find the time...)
 
 
 ## Disclaimers
 
-- I have almost zero Javascript experience, so I'm sure I'm missing standard good engineering patterns in it-- this was just a fast and fun project banged out in a few focused hours.
-- Typical caution about running scripts downloaded from strangers on the internet... fortunately you can look at the source and see it is just a local game, as promised.
+- I have almost zero Javascript experience, so I'm sure I'm missing standard engineering patterns or existing library functions-- this was just a fast and fun project banged out in several hours.
+- The typical caution about running scripts downloaded from strangers on the internet... I don't know what sort of sandboxing Last Call BBS includes, but fortunately you can just look at this source and see it is just a local game, nothing that talks to local files or the network.
 
