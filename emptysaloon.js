@@ -1,9 +1,10 @@
-// Empty Saloon -- poker solitaire for "Last Call BBS" servers
+// Empty Saloon -- poker solitaire as a "Last Call BBS" server (https://www.zachtronics.com/quickserve/)
 //
-//  (~port of a game I wrote for PICO-8: https://www.lexaloffle.com/bbs/?pid=83439 )
+// ~port of a game I wrote for PICO-8: https://www.lexaloffle.com/bbs/?pid=83439
 // by icegoat, July 2022  (twitter: @icegoat9)
 
-// disclaimer: I don't really know Javascript...
+// disclaimer: I don't really know Javascript... this was a quick 2-day project inspired
+//             by the recent Last Call BBS update...
 
 // High-level TODOs:
 //
