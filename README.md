@@ -1,8 +1,8 @@
 <img width="1065" src="https://user-images.githubusercontent.com/85364179/180317472-0bb6c88f-10d0-4245-bbcc-f31d5c982b67.png">
 
-Recently I've been playing [Last Call BBS](https://www.zachtronics.com/last-call-bbs/), a set of puzzles and ode to the 1990s era of computing and dial-up BBS culture by Zachtronics. In July 2022 the developers released a sort of in-game devkit, [Axiom QuickServe](https://www.zachtronics.com/quickserve/), which allows the community to write and share applications that will then show up as dial-up servers within the game world (with limited greyscale text and ANSI-art-style interfaces).
+Recently I've been playing [Last Call BBS](https://www.zachtronics.com/last-call-bbs/), a collection of interesting puzzle games and ode to the 1990s era of computing and dial-up BBS culture by Zachtronics. In July 2022 the developers released a sort of in-game devkit, [Axiom QuickServe](https://www.zachtronics.com/quickserve/), which allows the community to write and share applications that will then show up as dial-up servers within the game world (with limited greyscale text and ANSI-art-style interfaces).
 
-This caught my imagination so I spent a little time writing a poker solitaire game-- basically a port of [a little game I wrote for PICO-8](https://www.lexaloffle.com/bbs/?pid=83439).
+This caught my imagination so I spent a little time writing a poker solitaire game-- basically a port of [a simple game I wrote for PICO-8](https://www.lexaloffle.com/bbs/?pid=83439).
 
 # "Empty Saloon" poker solitaire 
 
