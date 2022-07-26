@@ -72,7 +72,7 @@ const HELPY0 = 9;
 const DEFAULTCOL = 9;
 const CARDCOL = 10;
 const CURSORCOL = 17;
-const CARDSUITS = ["*", "▲", "♥", "█"];
+const CARDSUITS = ["♣", "♦", "♥", "♠"];
 const CARDRANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
 const HANDNAMES = ["NONE", "PAIR", "2PR", "3KND", "STRT", "FLSH", "FULL", "4KND", "STFL"];
 //TODO: harmonize scores with other versions of game?
@@ -625,6 +625,6 @@ function drawTitle() {
   y0++;
   drawText("               press any key to enter", c, x0, y0++);
   y0++;
-  drawText("v0.7, icegoat9 (c)1995", 4, 32, 18);
+  drawText("v0.71, icegoat9 (c)1995", 4, 31, 18);
 }
 
