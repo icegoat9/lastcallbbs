@@ -16,17 +16,17 @@ It may be easiest to learn by playing. Place cards in a 5x5 grid to create 12 po
 
 ## Dev Log
 
-**July 21** Got something mostly working, let's call it "v0.7", uploaded to github
+**July 21** Got a playable game working, let's call it "v0.7", uploaded to github
+**July 26** Swap in newly available card characters ♣ ♦ ♠
 
 ToDo:
 - Get feedback from people who play it
-- Add Top 10 high scores?
+- Add 'Top 10 high scores' (and persist)?
 - Add a 'hard mode' (must score hands in all 12 directions)
-- List of other items in source code (but realistically may not find the time...)
 
 
 ## Disclaimers
 
 - I have almost zero Javascript experience, so I'm sure I'm missing standard engineering patterns or existing library functions-- this was just a fast and fun project banged out in several hours.
-- The typical caution about running scripts downloaded from strangers on the internet... I don't know what sort of sandboxing Last Call BBS includes, but fortunately you can just look at this source and see it is just a local game, nothing that talks to local files or the network.
+- The typical caveat about running scripts downloaded from strangers on the internet... I don't know what sort of sandboxing Last Call BBS includes, but fortunately you can just look at this source and see it is just a local game, nothing that talks to local files or the network.
 
