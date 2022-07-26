@@ -16,8 +16,8 @@ It may be easiest to learn by playing. Place cards in a 5x5 grid to create 12 po
 
 ## Dev Log
 
-**July 21** Got a playable game working, let's call it "v0.7", uploaded to github
-**July 26** Swap in newly available card characters ♣ ♦ ♠
+- **July 21** Got a playable game working, let's call it "v0.7", uploaded to github
+- **July 26** Swap in newly available card characters ♣ ♦ ♠
 
 ToDo:
 - Get feedback from people who play it
