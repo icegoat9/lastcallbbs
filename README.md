@@ -1,12 +1,15 @@
-<img width="1065" src="https://user-images.githubusercontent.com/85364179/180317472-0bb6c88f-10d0-4245-bbcc-f31d5c982b67.png">
-
 Recently I've been playing [Last Call BBS](https://www.zachtronics.com/last-call-bbs/), a collection of interesting puzzle games and ode to the 1990s era of computing and dial-up BBS culture by Zachtronics. In July 2022 the developers released a sort of in-game devkit, [Axiom QuickServe](https://www.zachtronics.com/quickserve/), which allows the community to write and share applications that will then show up as dial-up servers within the game world (with limited greyscale text and ANSI-art-style interfaces).
 
 This caught my imagination so I spent a little time writing a poker solitaire game-- basically a port of [a simple game I wrote for PICO-8](https://www.lexaloffle.com/bbs/?pid=83439).
 
 # "Empty Saloon" poker solitaire 
 
+<img width="1065" src="https://user-images.githubusercontent.com/85364179/180317472-0bb6c88f-10d0-4245-bbcc-f31d5c982b67.png">
+
 <img width="1047" src="https://user-images.githubusercontent.com/85364179/180317461-073fe383-57bc-4797-bdeb-d73ad143db30.png">
+
+## Play Online
+While playing within Last Call BBS is how this was intended, it looks like someone's now emulated that game's 'BBS dev environment', so you can play this game's .js file directly on the web at this link: https://stellartux.github.io/netronics-connect-online/?https://raw.githubusercontent.com/icegoat9/lastcallbbs/main/emptysaloon.js
 
 ## Installation
 Within Last Call BBS, open "Netronics Connect!" and go to "Add New Servers...". That should give you a window that lets you "Open Folder" to open the local servers folder on your computer. Download [emptysaloon.js](emptysaloon.js) from this github repo and move it to that folder. Restart Netronics Connect! and you should see the option to 'Dial Empty Saloon'.
