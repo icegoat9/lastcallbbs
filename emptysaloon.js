@@ -427,13 +427,17 @@ function handAnalyze(hand) {
     if (suitcounts[i] == 5) handtype = 5;
   }
   // check for straight (could also be straight flush)
-  if (maxrank - minrank == 4) {
+  if ((maxrank - minrank == 4) || checkAceHighStraight(rankcounts)) {
     // since we know by this point there are no duplicated ranks...
     if (handtype == 5) return 8; //already had flush: straight flush
     return 4; //straight
   }
   if (handtype == 5) return 5; //flush, not straight flush
   return 0; //nothing else matched
+}
+
+function checkAceHighStraight(rankCounts) {
+  return (rankCounts[0] == 1) &&  (rankCounts[12] == 1) && (rankCounts[11] == 1) && (rankCounts[10] == 1) && (rankCounts[9] == 1)
 }
 
 // example hands, test hand analysis on them:
